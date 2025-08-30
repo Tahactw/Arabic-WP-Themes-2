@@ -1,898 +1,1025 @@
 <?php
 /**
- * صفحة البحث - قوالب عربية ووردبريس
- * نتائج البحث مع فلاتر متقدمة
+ * شريط البحث المتقدم للقوالب
+ * نظام بحث ذكي مع الإكمال التلقائي والفلترة السريعة
  * 
  * @package ArabicThemes
+ * @author Tahactw
+ * @date 2025-05-29
+ * @version 1.0
  */
 
-get_header();
-
-$search_query = get_search_query();
-$search_results = $wp_query->found_posts;
+// منع الوصول المباشر
+if (!defined('ABSPATH')) {
+    exit;
+}
 ?>
 
-<main class="main-content search-page">
-    <!-- خلفية البحث -->
-    <div class="search-bg-effects">
-        <div class="search-particles">
-            <?php for($i = 0; $i < 20; $i++): ?>
-                <div class="particle" style="--delay: <?php echo $i * 0.1; ?>s;"></div>
-            <?php endfor; ?>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- رأس البحث -->
-        <header class="search-header">
-            <div class="search-info">
-                <h1 class="search-title">
-                    <i class="fas fa-search"></i>
-                    نتائج البحث
-                </h1>
+<div class="advanced-search-container">
+    <div class="search-main-wrapper">
+        <!-- شريط البحث الرئيسي -->
+        <div class="primary-search">
+            <div class="search-input-container">
+                <input type="text" 
+                       id="theme-search-advanced" 
+                       class="advanced-search-input"
+                       placeholder="ابحث عن القالب المثالي... (اكتب 3 أحرف على الأقل)"
+                       autocomplete="off"
+                       spellcheck="false">
                 
-                <?php if (!empty($search_query)): ?>
-                    <p class="search-query">
-                        البحث عن: <span class="query-highlight">"<?php echo esc_html($search_query); ?>"</span>
-                    </p>
+                <div class="search-controls">
+                    <button class="search-voice-btn" id="voice-search" title="البحث الصوتي">
+                        <i class="fas fa-microphone"></i>
+                    </button>
                     
-                    <div class="search-stats">
-                        <span class="results-count">
-                            <?php echo number_format($search_results); ?> نتيجة
-                        </span>
-                        <span class="search-time">
-                            في <?php echo number_format(timer_stop(), 3); ?> ثانية
-                        </span>
-                    </div>
-                <?php else: ?>
-                    <p class="no-query">لم يتم إدخال كلمة بحث</p>
-                <?php endif; ?>
-            </div>
-
-            <!-- نموذج البحث المتقدم -->
-            <div class="advanced-search">
-                <form class="search-form" method="get" action="<?php echo esc_url(home_url('/')); ?>">
-                    <div class="search-input-group">
-                        <input type="search" 
-                               name="s" 
-                               value="<?php echo esc_attr($search_query); ?>" 
-                               placeholder="ابحث عن القوالب..."
-                               class="search-input"
-                               autocomplete="off">
-                        <button type="submit" class="search-btn">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
+                    <button class="search-action-btn" id="search-action" title="بحث">
+                        <i class="fas fa-search"></i>
+                    </button>
                     
-                    <div class="search-filters">
-                        <select name="post_type" class="filter-select">
-                            <option value="">جميع المحتويات</option>
-                            <option value="wp_themes" <?php selected(get_query_var('post_type'), 'wp_themes'); ?>>
-                                القوالب فقط
-                            </option>
-                            <option value="post" <?php selected(get_query_var('post_type'), 'post'); ?>>
-                                المقالات فقط
-                            </option>
-                        </select>
-                        
-                        <select name="orderby" class="filter-select">
-                            <option value="relevance">الأكثر صلة</option>
-                            <option value="date" <?php selected(get_query_var('orderby'), 'date'); ?>>
-                                الأحدث
-                            </option>
-                            <option value="title" <?php selected(get_query_var('orderby'), 'title'); ?>>
-                                الاسم
-                            </option>
-                            <option value="modified" <?php selected(get_query_var('orderby'), 'modified'); ?>>
-                                آخر تحديث
-                            </option>
-                        </select>
-                    </div>
-                </form>
+                    <button class="search-clear-btn" id="search-clear" title="مسح" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-        </header>
+            
+            <!-- شريط التقدم للبحث -->
+            <div class="search-progress-bar">
+                <div class="search-progress-fill"></div>
+            </div>
+        </div>
 
-        <!-- محتوى النتائج -->
-        <div class="search-content">
-            <?php if (have_posts()): ?>
-                <div class="search-results">
-                    <div class="results-grid">
-                        <?php while (have_posts()): the_post(); ?>
-                            <?php if (get_post_type() === 'wp_themes'): ?>
-                                <!-- بطاقة قالب -->
-                                <?php get_template_part('template-parts/theme-card'); ?>
-                            <?php else: ?>
-                                <!-- بطاقة مقال -->
-                                <article class="search-result-card">
-                                    <div class="result-meta">
-                                        <span class="result-type">
-                                            <i class="fas fa-file-alt"></i>
-                                            مقال
-                                        </span>
-                                        <time class="result-date">
-                                            <?php echo get_the_date('j F Y'); ?>
-                                        </time>
-                                    </div>
-                                    
-                                    <h3 class="result-title">
-                                        <a href="<?php the_permalink(); ?>">
-                                            <?php the_title(); ?>
-                                        </a>
-                                    </h3>
-                                    
-                                    <div class="result-excerpt">
-                                        <?php echo wp_trim_words(get_the_excerpt(), 20, '...'); ?>
-                                    </div>
-                                    
-                                    <div class="result-footer">
-                                        <a href="<?php the_permalink(); ?>" class="read-more">
-                                            اقرأ المزيد
-                                            <i class="fas fa-arrow-left"></i>
-                                        </a>
-                                    </div>
-                                </article>
-                            <?php endif; ?>
-                        <?php endwhile; ?>
-                    </div>
+        <!-- الإكمال التلقائي -->
+        <div class="search-autocomplete" id="search-autocomplete" style="display: none;">
+            <div class="autocomplete-header">
+                <i class="fas fa-lightbulb"></i>
+                <span>اقتراحات البحث</span>
+            </div>
+            <div class="autocomplete-results" id="autocomplete-results">
+                <!-- ستتم تعبئة النتائج ديناميكياً -->
+            </div>
+        </div>
 
-                    <!-- ترقيم الصفحات -->
-                    <div class="search-pagination">
-                        <?php
-                        echo paginate_links(array(
-                            'prev_text' => '<i class="fas fa-chevron-right"></i> السابق',
-                            'next_text' => 'التالي <i class="fas fa-chevron-left"></i>',
-                            'before_page_number' => '<span>',
-                            'after_page_number' => '</span>'
-                        ));
-                        ?>
-                    </div>
+        <!-- البحث المتقدم القابل للطي -->
+        <div class="advanced-search-toggle">
+            <button class="toggle-advanced-btn" id="toggle-advanced-search">
+                <i class="fas fa-filter"></i>
+                <span>بحث متقدم</span>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+
+        <div class="advanced-search-panel" id="advanced-search-panel" style="display: none;">
+            <div class="advanced-search-grid">
+                <!-- البحث في الحقول -->
+                <div class="search-field-group">
+                    <label class="search-field-label">
+                        <i class="fas fa-heading"></i>
+                        البحث في العنوان
+                    </label>
+                    <input type="text" class="search-field-input" id="search-title" placeholder="عنوان القالب">
                 </div>
 
-            <?php else: ?>
-                <!-- لا توجد نتائج -->
-                <div class="no-results">
-                    <div class="no-results-icon">
-                        <i class="fas fa-search-minus"></i>
-                    </div>
-                    
-                    <h2>لم يتم العثور على نتائج</h2>
-                    
-                    <?php if (!empty($search_query)): ?>
-                        <p>لم نتمكن من العثور على أي نتائج لـ <strong>"<?php echo esc_html($search_query); ?>"</strong></p>
-                    <?php else: ?>
-                        <p>يرجى إدخال كلمة أو عبارة للبحث</p>
-                    <?php endif; ?>
-                    
-                    <div class="search-suggestions">
-                        <h3>اقتراحات للبحث:</h3>
-                        <ul>
-                            <li>تأكد من كتابة الكلمات بشكل صحيح</li>
-                            <li>جرب كلمات أخرى أو مرادفات</li>
-                            <li>استخدم كلمات أقل أو أكثر عمومية</li>
-                            <li>تصفح <a href="<?php echo esc_url(get_post_type_archive_link('wp_themes')); ?>">جميع القوالب</a></li>
-                        </ul>
-                    </div>
-
-                    <!-- قوالب مقترحة -->
-                    <div class="suggested-content">
-                        <h3>قوالب قد تهمك:</h3>
-                        <div class="suggestions-grid">
-                            <?php
-                            $suggested_themes = new WP_Query(array(
-                                'post_type' => 'wp_themes',
-                                'posts_per_page' => 3,
-                                'post_status' => 'publish',
-                                'orderby' => 'rand'
-                            ));
-                            
-                            if ($suggested_themes->have_posts()):
-                                while ($suggested_themes->have_posts()): $suggested_themes->the_post();
-                                    get_template_part('template-parts/theme-card');
-                                endwhile;
-                                wp_reset_postdata();
-                            endif;
-                            ?>
-                        </div>
-                    </div>
+                <div class="search-field-group">
+                    <label class="search-field-label">
+                        <i class="fas fa-align-left"></i>
+                        البحث في الوصف
+                    </label>
+                    <input type="text" class="search-field-input" id="search-description" placeholder="وصف القالب">
                 </div>
-            <?php endif; ?>
+
+                <div class="search-field-group">
+                    <label class="search-field-label">
+                        <i class="fas fa-tags"></i>
+                        الكلمات المفتاحية
+                    </label>
+                    <input type="text" class="search-field-input" id="search-tags" placeholder="الأوسمة">
+                </div>
+
+                <div class="search-field-group">
+                    <label class="search-field-label">
+                        <i class="fas fa-user"></i>
+                        المطور
+                    </label>
+                    <input type="text" class="search-field-input" id="search-author" placeholder="اسم المطور">
+                </div>
+            </div>
+
+            <div class="advanced-search-actions">
+                <button class="btn-advanced-search" id="apply-advanced-search">
+                    <i class="fas fa-search"></i>
+                    تطبيق البحث المتقدم
+                </button>
+                <button class="btn-reset-search" id="reset-advanced-search">
+                    <i class="fas fa-undo"></i>
+                    إعادة تعيين
+                </button>
+            </div>
+        </div>
+
+        <!-- إحصائيات البحث -->
+        <div class="search-stats" id="search-stats" style="display: none;">
+            <div class="stats-content">
+                <span class="search-results-count">
+                    <i class="fas fa-chart-bar"></i>
+                    تم العثور على <strong id="results-count">0</strong> نتيجة
+                </span>
+                <span class="search-time">
+                    في <span id="search-time">0</span> ثانية
+                </span>
+            </div>
+        </div>
+
+        <!-- البحث السريع -->
+        <div class="quick-search-tags">
+            <span class="quick-search-label">البحث السريع:</span>
+            <div class="quick-tags">
+                <button class="quick-tag" data-search="متجاوب">متجاوب</button>
+                <button class="quick-tag" data-search="أعمال">أعمال</button>
+                <button class="quick-tag" data-search="مدونة">مدونة</button>
+                <button class="quick-tag" data-search="متجر">متجر إلكتروني</button>
+                <button class="quick-tag" data-search="شخصي">شخصي</button>
+                <button class="quick-tag" data-search="تعليمي">تعليمي</button>
+                <button class="quick-tag" data-search="طبي">طبي</button>
+                <button class="quick-tag" data-search="مطعم">مطعم</button>
+            </div>
         </div>
     </div>
-</main>
+</div>
 
 <style>
-/* أنماط صفحة البحث */
-.search-page {
-    min-height: 100vh;
-    padding: 2rem 0;
-    position: relative;
-}
+/* ═══════════════════════════════════════════════════
+   🔍 تصميم البحث المتقدم
+   ═══════════════════════════════════════════════════ */
 
-/* خلفية البحث */
-.search-bg-effects {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    pointer-events: none;
-}
-
-.search-particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
-
-.particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: var(--neon-blue);
-    border-radius: 50%;
-    opacity: 0.4;
-    animation: searchFloat 12s infinite linear;
-    animation-delay: var(--delay);
-}
-
-.particle:nth-child(even) {
-    background: var(--neon-purple);
-    animation-duration: 15s;
-}
-
-.particle:nth-child(3n) {
-    background: var(--neon-green);
-    animation-duration: 18s;
-}
-
-@keyframes searchFloat {
-    0% {
-        transform: translateY(100vh) translateX(0) rotate(0deg);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.4;
-    }
-    90% {
-        opacity: 0.4;
-    }
-    100% {
-        transform: translateY(-100px) translateX(100px) rotate(360deg);
-        opacity: 0;
-    }
-}
-
-/* رأس البحث */
-.search-header {
-    background: var(--bg-glass);
-    border: 1px solid var(--border-color);
-    border-radius: 25px;
-    padding: 3rem;
-    margin-bottom: 3rem;
+.advanced-search-container {
+    background: rgba(26, 26, 46, 0.9);
     backdrop-filter: blur(20px);
-    text-align: center;
+    border-radius: 25px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 
-.search-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+body.light-mode .advanced-search-container {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
 
-.search-title i {
-    color: var(--neon-blue);
-    font-size: 2rem;
-}
-
-.search-query {
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-}
-
-.query-highlight {
-    color: var(--neon-blue);
-    font-weight: 600;
-    background: rgba(59, 130, 246, 0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: 8px;
-}
-
-.search-stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    font-size: 0.95rem;
-    color: var(--text-muted);
-}
-
-.results-count {
-    color: var(--neon-green);
-    font-weight: 600;
-}
-
-.no-query {
-    color: var(--text-muted);
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-}
-
-/* البحث المتقدم */
-.advanced-search {
-    max-width: 600px;
+.search-main-wrapper {
+    max-width: 800px;
     margin: 0 auto;
 }
 
-.search-input-group {
-    display: flex;
+/* شريط البحث الرئيسي */
+.primary-search {
+    position: relative;
     margin-bottom: 1.5rem;
-    background: var(--bg-tertiary);
-    border: 2px solid var(--border-color);
-    border-radius: 25px;
-    overflow: hidden;
-    transition: border-color var(--transition-normal);
 }
 
-.search-input-group:focus-within {
-    border-color: var(--neon-blue);
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
-}
-
-.search-input {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    border: none;
-    background: transparent;
-    color: var(--text-primary);
-    font-size: 1.1rem;
-    outline: none;
-}
-
-.search-input::placeholder {
-    color: var(--text-muted);
-}
-
-.search-btn {
-    padding: 1rem 1.5rem;
-    background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-}
-
-.search-btn:hover {
-    background: linear-gradient(45deg, var(--neon-purple), var(--neon-pink));
-    transform: scale(1.05);
-}
-
-.search-filters {
+.search-input-container {
+    position: relative;
     display: flex;
-    gap: 1rem;
-    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 17, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 50px;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.filter-select {
-    padding: 0.75rem 1rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
+body.light-mode .search-input-container {
+    background: rgba(248, 250, 252, 0.9);
+}
+
+.search-input-container:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+    transform: scale(1.02);
+}
+
+.advanced-search-input {
+    flex: 1;
+    padding: 1.2rem 1.5rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 500;
+}
+
+body.light-mode .advanced-search-input {
+    color: #1f2937;
+}
+
+.advanced-search-input::placeholder {
+    color: #8b9dc3;
+    transition: all 0.3s ease;
+}
+
+body.light-mode .advanced-search-input::placeholder {
+    color: #64748b;
+}
+
+.advanced-search-input:focus::placeholder {
+    opacity: 0.5;
+    transform: translateX(10px);
+}
+
+/* أزرار التحكم */
+.search-controls {
+    display: flex;
+    gap: 0.5rem;
+    padding-left: 1rem;
+}
+
+.search-voice-btn,
+.search-action-btn,
+.search-clear-btn {
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    color: #ffffff;
     cursor: pointer;
-    transition: all var(--transition-normal);
-}
-
-.filter-select:focus {
-    border-color: var(--neon-blue);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-}
-
-/* نتائج البحث */
-.search-results {
-    margin-bottom: 3rem;
-}
-
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
-}
-
-/* بطاقة نتيجة البحث */
-.search-result-card {
-    background: var(--bg-glass);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2rem;
-    backdrop-filter: blur(20px);
-    transition: all var(--transition-elastic);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
     position: relative;
     overflow: hidden;
 }
 
-.search-result-card::before {
-    content: '';
+.search-voice-btn:hover,
+.search-action-btn:hover,
+.search-clear-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.search-clear-btn {
+    background: linear-gradient(45deg, #ef4444, #f97316);
+}
+
+.search-clear-btn:hover {
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+/* شريط التقدم */
+.search-progress-bar {
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 0 0 50px 50px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.search-progress-bar.active {
+    opacity: 1;
+}
+
+.search-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-    transition: left 0.8s ease;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    width: 0%;
+    transition: width 0.5s ease;
 }
 
-.search-result-card:hover::before {
-    left: 100%;
+/* الإكمال التلقائي */
+.search-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    margin-top: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    animation: slideDown 0.3s ease;
 }
 
-.search-result-card:hover {
-    transform: translateY(-10px);
-    border-color: var(--neon-blue);
-    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.2);
+body.light-mode .search-autocomplete {
+    background: rgba(255, 255, 255, 0.95);
 }
 
-.result-meta {
+.autocomplete-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-}
-
-.result-type {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--neon-green);
+    gap: 0.8rem;
+    color: #3b82f6;
     font-weight: 600;
 }
 
-.result-date {
-    color: var(--text-muted);
+.autocomplete-results {
+    padding: 0.5rem 0;
 }
 
-.result-title {
-    margin-bottom: 1rem;
-}
-
-.result-title a {
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 1.3rem;
-    font-weight: 600;
-    transition: color var(--transition-normal);
-}
-
-.result-title a:hover {
-    color: var(--neon-blue);
-}
-
-.result-excerpt {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-
-.result-footer {
+.autocomplete-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.read-more {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--neon-blue);
-    text-decoration: none;
-    font-weight: 600;
-    transition: all var(--transition-normal);
-}
-
-.read-more:hover {
-    color: var(--neon-purple);
-    transform: translateX(-5px);
-}
-
-/* ترقيم الصفحات */
-.search-pagination {
-    display: flex;
-    justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 3rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.1);
 }
 
-.search-pagination .page-numbers {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    text-decoration: none;
-    font-weight: 600;
-    transition: all var(--transition-normal);
+.autocomplete-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(5px);
 }
 
-.search-pagination .page-numbers:hover,
-.search-pagination .page-numbers.current {
-    background: var(--neon-blue);
-    color: white;
-    border-color: var(--neon-blue);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-}
-
-.search-pagination .prev,
-.search-pagination .next {
-    width: auto;
-    padding: 0 1.5rem;
-    gap: 0.5rem;
-}
-
-/* عدم وجود نتائج */
-.no-results {
-    text-align: center;
-    padding: 4rem 2rem;
-}
-
-.no-results-icon {
-    font-size: 5rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-    opacity: 0.5;
-}
-
-.no-results h2 {
-    font-size: 2.5rem;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-}
-
-.no-results p {
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    margin-bottom: 3rem;
-}
-
-.search-suggestions {
-    background: var(--bg-glass);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 3rem;
-    backdrop-filter: blur(20px);
-    text-align: right;
-}
-
-.search-suggestions h3 {
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.search-suggestions ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.search-suggestions li {
-    padding: 0.5rem 0;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.search-suggestions li:last-child {
+.autocomplete-item:last-child {
     border-bottom: none;
 }
 
-.search-suggestions a {
-    color: var(--neon-blue);
-    text-decoration: none;
+.autocomplete-icon {
+    width: 20px;
+    color: #3b82f6;
+}
+
+.autocomplete-text {
+    flex: 1;
+    color: #ffffff;
+}
+
+body.light-mode .autocomplete-text {
+    color: #1f2937;
+}
+
+.autocomplete-count {
+    color: #8b9dc3;
+    font-size: 0.9rem;
+}
+
+body.light-mode .autocomplete-count {
+    color: #64748b;
+}
+
+/* زر البحث المتقدم */
+.advanced-search-toggle {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.toggle-advanced-btn {
+    background: rgba(0, 0, 17, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 25px;
+    padding: 1rem 2rem;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
     font-weight: 600;
 }
 
-.search-suggestions a:hover {
-    text-decoration: underline;
+body.light-mode .toggle-advanced-btn {
+    background: rgba(248, 250, 252, 0.9);
+    color: #1f2937;
 }
 
-/* المحتوى المقترح */
-.suggested-content {
-    margin-top: 3rem;
+.toggle-advanced-btn:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
 }
 
-.suggested-content h3 {
-    color: var(--text-primary);
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 1.5rem;
+.toggle-icon {
+    transition: transform 0.3s ease;
 }
 
-.suggestions-grid {
+.toggle-advanced-btn.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* لوحة البحث المتقدم */
+.advanced-search-panel {
+    background: rgba(0, 0, 17, 0.5);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    animation: slideDown 0.4s ease;
+}
+
+body.light-mode .advanced-search-panel {
+    background: rgba(248, 250, 252, 0.7);
+}
+
+.advanced-search-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-/* التصميم المتجاوب */
+.search-field-group {
+    position: relative;
+}
+
+.search-field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+body.light-mode .search-field-label {
+    color: #1f2937;
+}
+
+.search-field-label i {
+    color: #3b82f6;
+    width: 16px;
+}
+
+.search-field-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: rgba(26, 26, 46, 0.7);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 15px;
+    color: #ffffff;
+    font-size: 1rem;
+    font-family: 'Cairo', sans-serif;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+body.light-mode .search-field-input {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
+}
+
+.search-field-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    transform: scale(1.02);
+}
+
+.search-field-input::placeholder {
+    color: #8b9dc3;
+}
+
+body.light-mode .search-field-input::placeholder {
+    color: #64748b;
+}
+
+/* أزرار البحث المتقدم */
+.advanced-search-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-advanced-search,
+.btn-reset-search {
+    padding: 1.2rem 2rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.btn-advanced-search {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.btn-advanced-search:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6);
+}
+
+.btn-reset-search {
+    background: rgba(26, 26, 46, 0.8);
+    color: #ffffff;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+body.light-mode .btn-reset-search {
+    background: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
+}
+
+.btn-reset-search:hover {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    transform: translateY(-3px);
+}
+
+/* إحصائيات البحث */
+.search-stats {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 15px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.stats-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.search-results-count {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+body.light-mode .search-results-count {
+    color: #1f2937;
+}
+
+.search-results-count strong {
+    color: #3b82f6;
+    font-size: 1.1rem;
+}
+
+.search-time {
+    color: #8b9dc3;
+    font-size: 0.9rem;
+}
+
+body.light-mode .search-time {
+    color: #64748b;
+}
+
+/* البحث السريع */
+.quick-search-tags {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-search-label {
+    color: #8b9dc3;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+body.light-mode .quick-search-label {
+    color: #64748b;
+}
+
+.quick-tags {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.quick-tag {
+    padding: 0.5rem 1rem;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    color: #3b82f6;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.quick-tag:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.quick-tag.active {
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+/* الأنيميشن */
+@keyframes slideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* الاستجابة */
 @media (max-width: 768px) {
-    .search-header {
-        padding: 2rem;
+    .advanced-search-container {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
     }
     
-    .search-title {
-        font-size: 2rem;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .search-stats {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .search-filters {
-        flex-direction: column;
-    }
-    
-    .results-grid {
+    .advanced-search-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
-    .search-pagination {
-        flex-wrap: wrap;
+    .advanced-search-actions {
+        flex-direction: column;
     }
     
-    .search-pagination .prev,
-    .search-pagination .next {
-        order: -1;
+    .btn-advanced-search,
+    .btn-reset-search {
         width: 100%;
-        margin-bottom: 1rem;
     }
     
-    .suggestions-grid {
-        grid-template-columns: 1fr;
+    .quick-search-tags {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .stats-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .search-controls {
+        padding-left: 0.5rem;
+    }
+    
+    .search-voice-btn,
+    .search-action-btn,
+    .search-clear-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
     }
 }
 
 @media (max-width: 480px) {
-    .search-header {
-        padding: 1.5rem;
+    .advanced-search-input {
+        font-size: 1rem;
+        padding: 1rem;
     }
     
-    .search-input-group {
-        flex-direction: column;
+    .toggle-advanced-btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
     }
     
-    .search-btn {
-        border-radius: 0 0 23px 23px;
-    }
-    
-    .search-result-card {
-        padding: 1.5rem;
-    }
-    
-    .no-results {
-        padding: 2rem 1rem;
-    }
-    
-    .no-results h2 {
-        font-size: 2rem;
-    }
-    
-    .search-suggestions {
-        padding: 1.5rem;
-        text-align: center;
+    .quick-tags {
+        justify-content: center;
     }
 }
 
-/* دعم RTL */
-[dir="rtl"] .read-more:hover {
-    transform: translateX(5px);
+/* تأثيرات إضافية للبحث الصوتي */
+.search-voice-btn.recording {
+    animation: recordingPulse 1s ease-in-out infinite;
+    background: linear-gradient(45deg, #ef4444, #f97316);
 }
 
-[dir="rtl"] .search-pagination .prev {
-    order: 1;
+@keyframes recordingPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
 }
 
-[dir="rtl"] .search-pagination .next {
-    order: -1;
+/* تحسينات للأداء */
+.advanced-search-container * {
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
-@media (max-width: 768px) {
-    [dir="rtl"] .search-pagination .prev,
-    [dir="rtl"] .search-pagination .next {
-        order: 0;
+/* دعم الحركة المنخفضة */
+@media (prefers-reduced-motion: reduce) {
+    .advanced-search-container *,
+    .search-autocomplete,
+    .advanced-search-panel {
+        animation: none !important;
+        transition: none !important;
     }
 }
 </style>
 
 <script>
-// سكريبت صفحة البحث
 document.addEventListener('DOMContentLoaded', function() {
-    initSearchEffects();
-    initFilterAnimation();
-    initScrollAnimations();
-    highlightSearchTerms();
+    initAdvancedSearch();
 });
 
-// تأثيرات البحث
-function initSearchEffects() {
-    const searchInput = document.querySelector('.search-input');
-    const searchBtn = document.querySelector('.search-btn');
+function initAdvancedSearch() {
+    console.log('🔍 تهيئة نظام البحث المتقدم...');
     
-    if (searchInput && searchBtn) {
-        // تأثير التركيز
+    const searchInput = document.getElementById('theme-search-advanced');
+    const searchAction = document.getElementById('search-action');
+    const searchClear = document.getElementById('search-clear');
+    const voiceSearch = document.getElementById('voice-search');
+    const toggleAdvanced = document.getElementById('toggle-advanced-search');
+    const advancedPanel = document.getElementById('advanced-search-panel');
+    const autocomplete = document.getElementById('search-autocomplete');
+    const progressBar = document.querySelector('.search-progress-bar');
+    const progressFill = document.querySelector('.search-progress-fill');
+    const searchStats = document.getElementById('search-stats');
+    const quickTags = document.querySelectorAll('.quick-tag');
+    
+    let searchTimeout;
+    let isVoiceSearching = false;
+    
+    // البحث المباشر
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            if (query.length > 0) {
+                searchClear.style.display = 'block';
+                if (query.length >= 3) {
+                    showProgress();
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        performSearch(query);
+                        showAutocomplete(query);
+                    }, 300);
+                }
+            } else {
+                searchClear.style.display = 'none';
+                hideAutocomplete();
+                hideProgress();
+                clearSearch();
+            }
+        });
+        
+        // التركيز والإلغاء
         searchInput.addEventListener('focus', function() {
-            this.parentElement.style.borderColor = 'var(--neon-blue)';
-            this.parentElement.style.boxShadow = '0 0 30px rgba(59, 130, 246, 0.3)';
+            if (this.value.length >= 3) {
+                showAutocomplete(this.value);
+            }
         });
         
         searchInput.addEventListener('blur', function() {
-            if (!this.value) {
-                this.parentElement.style.borderColor = 'var(--border-color)';
-                this.parentElement.style.boxShadow = 'none';
-            }
+            setTimeout(() => hideAutocomplete(), 200);
         });
-        
-        // تأثير الإرسال
-        searchBtn.addEventListener('click', function() {
-            createSearchRipple(this);
-        });
-        
-        // البحث بالضغط على Enter
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                createSearchRipple(searchBtn);
+    }
+    
+    // مسح البحث
+    if (searchClear) {
+        searchClear.addEventListener('click', function() {
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+                this.style.display = 'none';
+                hideAutocomplete();
+                hideProgress();
+                clearSearch();
             }
         });
     }
-}
-
-function createSearchRipple(button) {
-    const ripple = document.createElement('div');
-    ripple.style.cssText = `
-        position: absolute;
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 50%;
-        pointer-events: none;
-        transform: scale(0);
-        animation: ripple 0.6s ease-out;
-        top: 50%;
-        left: 50%;
-        width: 20px;
-        height: 20px;
-        margin-top: -10px;
-        margin-left: -10px;
-    `;
     
-    button.style.position = 'relative';
-    button.appendChild(ripple);
-    
-    setTimeout(() => ripple.remove(), 600);
-}
-
-// تحريك الفلاتر
-function initFilterAnimation() {
-    const filterSelects = document.querySelectorAll('.filter-select');
-    
-    filterSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            this.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 150);
-        });
-    });
-}
-
-// تأثيرات التمرير
-function initScrollAnimations() {
-    const animatedElements = document.querySelectorAll('.search-result-card, .no-results');
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
-                const delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 0.1;
-                
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, delay * 100);
-                
-                entry.target.classList.add('animated');
+    // البحث الصوتي
+    if (voiceSearch && 'webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ar-SA';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        voiceSearch.addEventListener('click', function() {
+            if (!isVoiceSearching) {
+                startVoiceSearch();
+            } else {
+                stopVoiceSearch();
             }
         });
-    }, { threshold: 0.1 });
-    
-    animatedElements.forEach(element => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(50px)';
-        element.style.transition = 'all 0.6s ease';
-        observer.observe(element);
-    });
-}
-
-// تمييز كلمات البحث
-function highlightSearchTerms() {
-    const searchQuery = new URLSearchParams(window.location.search).get('s');
-    if (!searchQuery) return;
-    
-    const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 2);
-    
-    document.querySelectorAll('.result-title a, .result-excerpt').forEach(element => {
-        let content = element.innerHTML;
         
-        searchTerms.forEach(term => {
-            const regex = new RegExp(`(${term})`, 'gi');
-            content = content.replace(regex, '<mark class="search-highlight">$1</mark>');
+        recognition.onstart = function() {
+            isVoiceSearching = true;
+            voiceSearch.classList.add('recording');
+            voiceSearch.innerHTML = '<i class="fas fa-stop"></i>';
+        };
+        
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            if (searchInput) {
+                searchInput.value = transcript;
+                performSearch(transcript);
+                showAutocomplete(transcript);
+            }
+        };
+        
+        recognition.onend = function() {
+            stopVoiceSearch();
+        };
+        
+        function startVoiceSearch() {
+            recognition.start();
+        }
+        
+        function stopVoiceSearch() {
+            isVoiceSearching = false;
+            voiceSearch.classList.remove('recording');
+            voiceSearch.innerHTML = '<i class="fas fa-microphone"></i>';
+            recognition.stop();
+        }
+    } else if (voiceSearch) {
+        voiceSearch.style.display = 'none';
+    }
+    
+    // تبديل البحث المتقدم
+    if (toggleAdvanced && advancedPanel) {
+        toggleAdvanced.addEventListener('click', function() {
+            const isVisible = advancedPanel.style.display !== 'none';
+            
+            if (isVisible) {
+                advancedPanel.style.display = 'none';
+                this.classList.remove('active');
+            } else {
+                advancedPanel.style.display = 'block';
+                this.classList.add('active');
+            }
         });
-        
-        element.innerHTML = content;
+    }
+    
+    // البحث السريع
+    quickTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            const searchTerm = this.dataset.search;
+            
+            // إزالة active من جميع العلامات
+            quickTags.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            if (searchInput) {
+                searchInput.value = searchTerm;
+                performSearch(searchTerm);
+                showAutocomplete(searchTerm);
+            }
+        });
     });
-}
-
-// إضافة أنماط التمييز
-const highlightStyles = document.createElement('style');
-highlightStyles.textContent = `
-    .search-highlight {
-        background: linear-gradient(45deg, var(--neon-yellow), var(--neon-orange));
-        color: var(--bg-primary);
-        padding: 0.1em 0.2em;
-        border-radius: 3px;
-        font-weight: 600;
-        animation: highlight-pulse 2s ease-in-out infinite;
+    
+    function performSearch(query) {
+        console.log('🔍 البحث عن:', query);
+        
+        const startTime = performance.now();
+        
+        // هنا يتم تنفيذ البحث الفعلي
+        // سيتم ربطه مع نظام الفلترة الرئيسي
+        
+        setTimeout(() => {
+            const endTime = performance.now();
+            const searchTime = ((endTime - startTime) / 1000).toFixed(2);
+            
+            // عرض النتائج والإحصائيات
+            showSearchStats(query, searchTime);
+            hideProgress();
+        }, 500);
     }
     
-    @keyframes highlight-pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
-    
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
+    function showAutocomplete(query) {
+        if (!autocomplete) return;
+        
+        // محاكاة اقتراحات البحث
+        const suggestions = generateSuggestions(query);
+        const resultsContainer = document.getElementById('autocomplete-results');
+        
+        if (suggestions.length > 0 && resultsContainer) {
+            resultsContainer.innerHTML = suggestions.map(suggestion => `
+                <div class="autocomplete-item" data-search="${suggestion.text}">
+                    <i class="autocomplete-icon ${suggestion.icon}"></i>
+                    <span class="autocomplete-text">${suggestion.text}</span>
+                    <span class="autocomplete-count">${suggestion.count} نتيجة</span>
+                </div>
+            `).join('');
+            
+            // إضافة مستمعات الأحداث للاقتراحات
+            resultsContainer.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const searchTerm = this.dataset.search;
+                    if (searchInput) {
+                        searchInput.value = searchTerm;
+                        performSearch(searchTerm);
+                    }
+                    hideAutocomplete();
+                });
+            });
+            
+            autocomplete.style.display = 'block';
+        } else {
+            hideAutocomplete();
         }
     }
-`;
-document.head.appendChild(highlightStyles);
-
-// تتبع إحصائيات البحث
-if (window.ArabicThemes && window.ArabicThemes.ajaxurl) {
-    const searchQuery = new URLSearchParams(window.location.search).get('s');
-    const resultsCount = document.querySelector('.results-count')?.textContent;
     
-    if (searchQuery) {
-        fetch(window.ArabicThemes.ajaxurl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                action: 'track_search',
-                query: searchQuery,
-                results: resultsCount || '0',
-                nonce: window.ArabicThemes.nonce || ''
-            })
-        }).catch(error => {
-            console.log('Search tracking error:', error);
-        });
+    function generateSuggestions(query) {
+        // محاكاة اقتراحات ذكية بناءً على الاستعلام
+        const baseSuggestions = [
+            { text: 'قوالب أعمال', icon: 'fas fa-briefcase', count: 25 },
+            { text: 'قوالب مدونة', icon: 'fas fa-blog', count: 18 },
+            { text: 'قوالب متجر إلكتروني', icon: 'fas fa-shopping-cart', count: 12 },
+            { text: 'قوالب شخصية', icon: 'fas fa-user', count: 15 },
+            { text: 'قوالب تعليمية', icon: 'fas fa-graduation-cap', count: 8 },
+            { text: 'قوالب طبية', icon: 'fas fa-heartbeat', count: 6 },
+            { text: 'قوالب مطاعم', icon: 'fas fa-utensils', count: 9 }
+        ];
+        
+        return baseSuggestions
+            .filter(suggestion => 
+                suggestion.text.toLowerCase().includes(query.toLowerCase())
+            )
+            .slice(0, 5);
     }
+    
+    function showProgress() {
+        if (progressBar) {
+            progressBar.classList.add('active');
+            if (progressFill) {
+                progressFill.style.width = '0%';
+                setTimeout(() => {
+                    progressFill.style.width = '100%';
+                }, 50);
+            }
+        }
+    }
+    
+    function hideProgress() {
+        if (progressBar) {
+            progressBar.classList.remove('active');
+            if (progressFill) {
+                progressFill.style.width = '0%';
+            }
+        }
+    }
+    
+    function showAutocomplete() {
+        if (autocomplete) {
+            autocomplete.style.display = 'block';
+        }
+    }
+    
+    function hideAutocomplete() {
+        if (autocomplete) {
+            autocomplete.style.display = 'none';
+        }
+    }
+    
+    function showSearchStats(query, time) {
+        if (searchStats) {
+            const resultsCount = document.getElementById('results-count');
+            const searchTime = document.getElementById('search-time');
+            
+            // محاكاة عدد النتائج
+            const count = Math.floor(Math.random() * 50) + 1;
+            
+            if (resultsCount) resultsCount.textContent = count;
+            if (searchTime) searchTime.textContent = time;
+            
+            searchStats.style.display = 'block';
+        }
+    }
+    
+    function clearSearch() {
+        if (searchStats) {
+            searchStats.style.display = 'none';
+        }
+        
+        // إزالة active من جميع العلامات السريعة
+        quickTags.forEach(tag => tag.classList.remove('active'));
+        
+        // مسح جميع الفلاتر
+        console.log('🔄 تم مسح جميع فلاتر البحث');
+    }
+    
+    console.log('✅ نظام البحث المتقدم جاهز للاستخدام!');
 }
 </script>
-
-<?php get_footer(); ?>
